@@ -70,60 +70,58 @@ In contrast, our approach is concerned with \textit{document} expansion. It is b
 
 \section{Constructing Knowledge Base Links}\label{section.linking}
 
-Unlike most entity linking and wikification tasks, ours does not require the identification of entity or concept mentions in the document text. Instead, we are satisfied with a ``bag of links'' between a document and the knowledge base. These links provide the same benefits for our retrieval task as those that refer to specific mentions. Further, this choice frees our approach to use standard information retrieval techniques in a straightforward way. This allows us to construct links more efficiently than typical wikification systems and without the need for training data, instead using a standard inverted index over a knowledge base corpus. 
+\subsection{Underlying Retrieval Model}\label{section.linking.model}
+Throughout this paper we rely on the language modeling retrieval framework \cite{Lafferty2001}, though this is not strictly necessary and imposes no particular mathematical constraints on our approach.
 
-In the following, we differentiate between the target corpus, $C_T$, from which the user would like to retrieve a document, and the knowledge base corpus, $C_K$, which is used for the entity linking procedure. 
+More specifically, our framework for all of the retrievals carried out in this work is the query likelihood (QL) ranking method.  Given a query $Q$ and a document $D$, we rank documents on $P(Q | \theta_D)$, where $\theta_D$ is the language model (typically a multinomial over the vocabulary $V$) that generated the text of document $D$.  Assuming independence among terms and a uniform distribution over documents, each document is scored by
 
-For a given document $D$ in $C_T$, our task is to construct a set of knowledge base links. The essence of our approach is to use $D$ as a query against $C_K$; the result of this query is a set of knowledge base entries with retrieval scores. 
+\begin{flalign}\label{equation.ql}
+\log P(Q | D) = \prod_{w \in Q} P(w | Q) \cdot \log P(w | \theta_D) .
+\end{flalign}
 
-First, we remove stop words from $D$ using Indri's standard stop list\footnote{http://www.lemurproject.org/stopwords/stoplist.dft}. We then prune the document to include only the top $k$ terms, with $0 < k \leq |D|$ where $|D|$ is the length of the stopped document. Call this pruned document $D_Q$. We may now issue $D_Q$ as a query against $C_K$ using the KL-divergence retrieval model \cite{Lafferty2001}. The KL-divergence retrieval model measures the distance between the query language model, $\theta_{D_Q}$ here, and the document language model, $\theta_E$, as follows:
+\noindent We follow standard procedures for estimating the probabilities in Eq. \ref{equation.ql}.  We simply use the maximum likelihood estimate of $\hat{P}(w | Q) = \frac{c(w, Q)}{|Q|}$ where $c(w, Q)$ is the frequency of word $w$ in $Q$.  For $P(w | \theta_D)$ we estimate a smoothed language model by assuming that document language models
+in a given collection have a Dirichlet prior distribution:
+
+\begin{flalign}\label{equation.ql}
+\hat{P}(w | \theta_D) = \frac{c(w, D) + \mu \hat{P}(w | C)}{|D| + \mu} 
+\end{flalign}
+
+\noindent where $\hat{P}(w | C)$ is the maximum likelihood estimate of the probability of seeing word $w$ in a ``background" collection $C$ (typically $C$ is the corpus from which $D$ is drawn), and $\mu \geq 0$ is the smoothing hyper-parameter. 
+
+
+\subsection{Linking with Document Pseudo-Queries}\label{section.linking.queries}
+%The KL-divergence retrieval model measures the distance between the query language model, $\theta_{D_Q}$ here, and the document language model, $\theta_E$, as follows:
 %
-\begin{flalign*}
-	score(E,D_Q) 	&= -KL(\theta_{D_Q}||\theta_E) \\
-					&\rankeq \sum_{w \in V} P(w|\theta_{D_Q}) \log P(w|\theta_E)
-\end{flalign*}
+%\begin{flalign*}
+%	score(E,D_Q) 	&= -KL(\theta_{D_Q}||\theta_E) \\
+%					&\rankeq \sum_{w \in V} P(w|\theta_{D_Q}) \log P(w|\theta_E)
+%&\end{flalign*}
 %
-where $E$ is a candidate entity and $w$ is a word in the vocabulary $V$.
+\noindent To find candidate entities to ``link" to a given document $D$, we begin by treating the text of $D$ as a pseudo-query which we pose against a collection of entities $C_E$.  To transform a document into a pseudo-query we apply two transformations.  First we remove all terms from $D$ that appear in the standard Indri stoplist\footnote{http://www.lemurpro ject.org/stopwords/stoplist.dft}.  Next, we prune our pseudo-query by retaining only the $0 < k \leq |D|$ most frequent words in the stemmed text of $D$.  The integer variable $k$ is a parameter that we choose empirically.  Let $Q_D$ be the pseudo-query for $D$, consisting of the text of $D$ after our two transformations.
 
-This results in a ranked list of tuples $\{(E_1, S_1)$, $(E_2, S_2)$, $...$, $(E_N, S_N)\}$ relating knowledge base entry $E_i$ to $D$ with probability $S_i$. Our final step is to take the top $n$ entries where $0 \leq n \leq N$. We call these top entries $\mathcal{E}_D$ and designate them as our knowledge base links for $D$. 
+With our pseudo-query for document $D$ in hand, we obtain a list of candidate entities by running $Q_D$ over an index of our knowledge base, $C_E$, where each entry in this index is the text of an entity $E$'s knowledge base node. More formally, we rank the entities in our knowledge base against $D$ using Eq. \ref{equation.ql}, substituting $D_Q$ for the query and $E_i$--the text of the $i^{th}$ entity--for the document. Let $\pi_i$ be the log-probability for entity $E_i$ with respect to $D$ given by equation \ref{equation.ql}.  
 
-Note that, since this procedure does not depend on the query, we may compute $\mathcal{E}_D$ once at indexing time and reuse our knowledge base links across queries. 
+We now have a ranked list of tuples $\{(E_1, \pi_1)$, $(E_2, \pi_2)$, $...$, $(E_N, \pi_N)\}$ relating knowledge base entry $E_i$ to $D$ with log-probability $\pi_i$. Our final step is to take the top $n$ entries where $0 \leq n \leq N$. We call these top entries $\mathcal{E}_D$ and designate them as our knowledge base links for $D$.  Finally, we exponentiate each $\pi_i$ and normalize our entity scores so they sum to 1 over the $n$ retained entities.  Assuming a uniform prior over entities, we now have a probability distribution over our $n$ retained entities: $P(E | D)$.
+
+Since this procedure does not depend on the query, we may compute $\mathcal{E}_D$ once at indexing time and reuse our knowledge base links across queries. 
 
 \section{KB-Linked Retrieval Model}\label{section.model}
 
-We would now like to incorporate our knowledge base links into a retrieval model. Though the knowledge base provides more structured information such as hyperlink graphs and entity category information, in this work we choose to focus on the description text supplied for each entry.
+We would now like to incorporate our knowledge base links into a retrieval model over documents. Though many knowledge bases provide structured information such as hyperlink graphs and entity category information, in this work we focus only on the textual content supplied for each entry.
 
-%We take a language modeling approach to retrieval. A major problem of language modeling is the sparseness of observations from the document language model $\theta_D$ \cite{}. One common solution to this problem is to smooth a document using a background language model based on the collection. These background probabilities help to ensure...
-
-In the query likelihood retrieval model, we rank documents by the probability that their underlying distribution over words, $\theta_D$, would generate the query $Q$. Using the maximum likelihood estimate of $\theta_D$ based on $D$ and Bayes' rule, we have:
-%
-\begin{flalign}\label{eq.lm}
-	P(D|Q) 	&= \frac{P(Q|D)P(D)}{P(Q)} \\
-			&\rankeq P(Q|D)P(D)
-\end{flalign}
-
-Often, as we do in this paper, $P(D)$ is assumed to be uniform and may be ignored. With Dirichlet smoothing, we compute $P(Q|D)$ as follows:
-%
-\begin{flalign}\label{eq.ql}
-	P(Q|D) 	&= \prod_{i=1}^m P(q_i|D) \\
-			&= \prod_{i=1}^m \frac{c(q_i,D) + \mu P(q_i|C)}{|D| + \mu}
-\end{flalign}
-%
-where $c(q_i,D)$ is the count of query term $q_i$ in the document, $P(q_i|C)$ is the term's background probability in the collection $C$, and $\mu$ is a parameter.
-
-We assume that a query is generated by mixing the document model $\theta_D$ with a model $\theta_K$ representing the concepts linked from the knowledge base. We assume that $\theta_K$ can be estimated using the linked knowledge base concepts $\mathcal{E}_D$. This mixture model may be expressed as:
+We assume that a query is generated by a mixture of the document model $\theta_D$ and a model $\theta_K$ representing the concepts linked from the knowledge base. We assume that $\theta_K$ can be estimated using the linked knowledge base concepts $\mathcal{E}_D$. This mixture model may be expressed as:
 %
 \begin{flalign}\label{eq.ql-and-entities}
-	P(Q|D) &= \prod_{i=1}^m (1-\lambda) P(q_i|D) + \lambda P(q_i|\mathcal{E}_D)
+	\hat{P}^\lambda(Q|D) &= \prod_{i=1}^m (1-\lambda) P(q_i|D) + \lambda P(q_i|\mathcal{E}_D)
 \end{flalign}
 
-The larger $\lambda$ is, the more we believe that the knowledge base concepts are responsible for generating $Q$, and the less we believe that the document is responsible for generating $Q$. We can estimate $P(q_i|\mathcal{E}_D)$ as follows:
+\noindent The larger $\lambda$ is, the more we believe that the knowledge base concepts are responsible for generating $Q$, and the less we believe that the document is responsible for generating $Q$. We estimate $P(q_i|\mathcal{E}_D)$ in expectation:
 %
 \begin{flalign}\label{eq.entity-sum}
-	P(q_i|\mathcal{E}_D) &= \sum_{E \in \mathcal{E}_D} P(q_i|E) P(E|D) P(D)
+	P(q_i|\mathcal{E}_D) &= \sum_{E \in \mathcal{E}_D} P(q_i|E) P(E|D) .
 \end{flalign}
 
-Like $P(q_i|D)$, we estimate $P(q_i|E)$ as a Dirichlet smoothed query likelihood, but using the knowledge base's description text for entry $E$ to estimate of the underlying model. We are also already provided estimates of $P(E|D)$ by the linking process: this quantity corresponds to retrieval score $S$ computed for $E$ from Section \ref{section.linking}. As in Eq. \ref{eq.ql}, we assume $P(D)$ to be uniform.
+\noindent Like $P(q_i|D)$, we estimate $P(q_i|E)$ as a Dirichlet-smoothed query likelihood, but using the knowledge base's text for entry $E$ to estimate of the underlying model. By virtue of our entity-document scoring and normalization, we also have $P(E|D)$.
 
 \section{Evaluation}\label{section.evaluation}
 
@@ -141,7 +139,7 @@ We produce two runs per collection:
 \begin{itemize}
 	\item \textit{baseline-ql}, a baseline query likelihood run
 %	\item \textit{baseline-rm3}, a baseline RM3 run
-	\item \textit{kb-ql}, incorporating knowledge base links using an initial query likelihood retrieval
+	\item \textit{kb-ql}, incorporating knowledge base links using Eq \ref{eq.ql-and-entities}.
 %	\item \textit{kb-rm3}, incorporating knowledge base links using an initial RM3 retrieval
 \end{itemize}
 
