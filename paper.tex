@@ -31,7 +31,7 @@
 %       \affaddr{University of Illinois at Urbana-Champaign}\\
 %       \email{\{gsherma2, mefron\}@illinois.edu}
 %}
-\conferenceinfo{SIGIR}{2016 Pisa, Italy}
+\conferenceinfo{CIKM}{2016 Indianapolis, Indiana, USA}
 
 \title{Document knowledge base linking for information retrieval}
 
@@ -52,7 +52,7 @@ Entity linking and wikification have been the subject of much research, spurred 
 
 These links enrich documents by connecting knowledge base information such as hyperlink graphs, entity membership in categories, and additional text to the annotated documents. It seems reasonable that information retrieval (IR) systems might take advantage of this added source of information to improve the quality of search results. Unfortunately, producing high quality entity annotations is often a computationally expensive process. In addition, these systems generally require training data, which increases the barrier to use. Much entity linking and wikification research has also assumed more amenable circumstances that complicate their application to real-world text. For example, until 2014, the KBP entity linking track supplied explicit mention boundaries to participants.
 
-For the purposes of ad hoc document retrieval, however, the granularity of linking entities to specific mention spans in the text is not necessarily required. Since retrieval is concerned with scoring documents in their entirety, we may simplify the task from mapping \textit{mentions} to entities, as is more common, to mapping \textit{documents} to entities. We argue that such a ``bag of links'' provides many of the same benefits as more fine-grained entity linking or wikification processes for the purposes of ad hoc document retrieval while improving computational efficiency and robustness against overfitting. 
+For the purposes of ad hoc document retrieval, however, the granularity of linking entities to specific mention spans in the text is not necessarily required. Since retrieval is concerned with scoring documents in their entirety, we may simplify the task from mapping \textit{mentions} to entities, as is more common, to mapping \textit{documents} to entities. We argue that such a ``bag of links'' provides many of the same benefits as more fine-grained entity linking or wikification processes for the purposes of ad hoc document retrieval while improving computational efficiency and robustness against overfitting. This is because explicitly mentioned entities are often not directly related to the subject matter of documents: for example, a news article may explicitly mention the publisher of a book, which is less useful for document expansion purposes than unmentioned entities relating to the book's subject matter.
 
 In this paper, we present a document expansion retrieval model to incorporate a ``bag of links'' into the document retrieval task. This model is in contrast to prior work applying entity links to IR, which has focused on \textit{query} expansion. Our document expansion model yields improvement over IR baselines.
 
@@ -66,7 +66,7 @@ The related area of entity retrieval is also relevant to our work, e.g. \cite{Ad
 
 \subsection{Document Expansion in IR}\label{section.related.ir}
 
-Prior applications of knowledge base links in information retrieval use entity links in a feedback process for query expansion. Xiong and Croft, for example, employ FACC1\footnote{http://lemurproject.org/clueweb09/FACC1/} annotations on the document collection with supervised learning to expand queries \cite{Xiong2015}. Other researchers use entity links in the queries themselves, rather than documents, to aid in expansion \cite{Xu2009, Brandao2014}. Still others use entity links in \textit{both} the query and documents \cite{Dalton2014, Li2015} to expand queries. Apart from entity linking, knowledge bases have also been used for query expansion in several related tasks, such as document filtering \cite{Xie2015} and blog search \cite{Elsas2008, Weerkamp2009}.
+Prior applications of knowledge base links in information retrieval use entity links in a feedback process for query expansion. Xiong and Croft, for example, employ FACC1\footnote{http://lemurproject.org/clueweb09/FACC1/} annotations on the document collection with supervised learning to expand queries \cite{Xiong2015}. Other researchers use entity links identified in query texts, rather than documents, to aid in expansion \cite{Xu2009, Brandao2014}. Still others use entity links in \textit{both} the query and documents \cite{Dalton2014, Li2015} to expand queries. Apart from entity linking, knowledge bases have also been used for query expansion in several related tasks, such as document filtering \cite{Xie2015} and blog search \cite{Elsas2008, Weerkamp2009}.
 
 %Dalton and Dietz \cite{Dalton2014}, for example, use a number of sources, including entity-annotated queries and pseudo-relevance feedback (PRF) on entity-annotated document collections. Their process is underpinned by entity links produced by their own KB Bridge system \cite{Dalton2013}. Similarly, Xiong and Callan expand queries using pseudo-relevance feedback with the descriptions and categories of Freebase objects linked to a retrieved document in the FACC1\footnote{http://lemurproject.org/clueweb09/FACC1/} annotation data. They employ a supervised machine learning model to select expansion terms, trained on the basis of the terms' influence on the ranking scores of relevant documents \cite{Xiong2015}. Others, including \Li et al. expand queries using the Markov random field model for information retrieval using entity annotations in both the queries and the documents \cite{Li2015}. Other research has investigated query expansion with entities for closely related tasks, like filtering \cite{Xie2015}, entity annotations in the \textit{query}, rather than document \cite{Xu2009, Brandao2014}
 
@@ -113,7 +113,7 @@ Since this procedure does not depend on the query, we may compute $\mathcal{E}_D
 
 We would now like to incorporate our knowledge base links into a retrieval model over documents. Though many knowledge bases provide structured information such as hyperlink graphs and entity category information, in this work we focus only on the textual content supplied for each entry.
 
-We assume that a query is generated by a mixture of the document model $\theta_D$ and a model $\theta_K$ representing the concepts linked from the knowledge base. We assume that $\theta_K$ can be estimated using the linked knowledge base concepts $\mathcal{E}_D$. This mixture model may be expressed as:
+We assume that a query is generated by a mixture of the document language model $\theta_D$ and a language model $\theta_K$ representing the concepts linked from the knowledge base. We assume that $\theta_K$ can be estimated using the description texts of the linked knowledge base concepts $\mathcal{E}_D$. This mixture model may be expressed as:
 %
 \begin{flalign}\label{eq.ql-and-entities}
 	\hat{P}^\lambda(Q|D) &= \prod_{i=1}^{|Q|} (1-\lambda) P(q_i|D) + \lambda P(q_i|\mathcal{E}_D)
@@ -133,9 +133,9 @@ We assume that a query is generated by a mixture of the document model $\theta_D
 
 To perform knowledge base linking, we make use of the September 1, 2015 dump of English Wikipedia. We build an Indri\footnote{http://www.lemurproject.org/indri/} index over the Wikipedia page text. The text of each Wikipedia page also serves as the ``description text'' used in Eq. \ref{eq.entity-sum}.
 
-We test our approach using the TREC 2004 robust topics. These 250 topics are used with data from TREC disks 4 and 5. In addition, we use the AP newswire collection from TREC disks 1 and 2 with topics 101-200.
+We test our approach using the TREC 2004 robust topics. These 250 topics are used with data from TREC disks 4 and 5. In addition, we use the AP newswire collection from TREC disks 1 and 2 with topics 101-200. Using slightly older test collections helps to ensure that the knowledge base's coverage includes information about the topics; as noted in \cite{Frank2013}, updates to knowledge bases may lag considerably behind the occurrence of events.
 
-For comparison, we also report the results of our model using entity links produced by Apache Stanbol\footnote{http://stanbol.apache.org/}. We process the test collections with Stanbol's default ``enhancer,'' which supplies entity links and corresponding confidence scores. Though Stanbol links to DBpedia\footnote{http://dbpedia.org} resources, these generally correspond to Wikipedia pages and may be converted easily. We select the link with the highest confidence for each mention in a given document. These links form the set of document links, and their confidence scores may be normalized to provide an estimate of $P(E|D)$.
+For comparison, we also report the results of our model using entity links produced by Apache Stanbol\footnote{http://stanbol.apache.org/}. We process the test collections with Stanbol's default ``enhancer,'' which supplies entity links and corresponding confidence scores. Though Stanbol links to DBpedia\footnote{http://dbpedia.org} resources, these generally correspond to Wikipedia pages and may be converted easily. We select the link with the highest confidence for each mention in a given document and limit the set of links to $n$, the number of entities used in our bag-of-links approach. These links form the set of document links, and their confidence scores may be normalized to provide an estimate of $P(E|D)$.
 
 \subsection{Runs}\label{section.evaluation.runs}
 
@@ -156,10 +156,10 @@ We remove stop words in documents and entity descriptions for all runs. For the 
 
 \begin{table}[htbp]
 \centering
-\begin{tabular}{|c|p{0.28\textwidth}|c|} \hline
+\begin{tabular}{|c|p{0.29\textwidth}|c|} \hline
 {\bf Param} & {\bf Meaning} & {\bf Value} \\ \hline
 $k$ & The maximum number of document terms to use in constructing $Q_D$. & 20 \\ \hline
-$n$ & The maximum number of knowledge base entries in $\mathcal{E}_D$. & 10 \\ \hline
+$n$ & The maximum number of knowledge base entries in $\mathcal{E}_D$. & 10-100 \\ \hline
 $\lambda$ & Mixing parameter controlling the weights of $P(q|D)$ and $P(q|E)$ & 0.0-1.0 \\ \hline
 $\mu$ & Used for Dirichlet smoothing of both $P(q|D)$ and $P(q|E)$. & 2500 \\ \hline
 %$fbDocs$ & The number of feedback documents to use for RM3 runs. & 20 \\ \hline
@@ -172,46 +172,53 @@ $\mu$ & Used for Dirichlet smoothing of both $P(q|D)$ and $P(q|E)$. & 2500 \\ \h
 
 The various parameters required for our approach, along with their meanings and the values used in our experiments, are shown in Table \ref{table.parameters}. 
 
-We sweep across values of $\lambda$ at intervals of $0.1$ to investigate how much weight should be given to the entity model. The results of these sweeps are shown in Figure \ref{figure.sweeps-ql} and discussed further in Section \ref{section.results}.
+We sweep across values of $\lambda$ and $n$ at intervals of 0.1 and 10 respectively to investigate the sensitivity of our model to these parameters. The results of these sweeps are shown in Figure \ref{figure.sweeps-ql} and discussed further in Section \ref{section.results}.
 
-For this work, we set $k$ and $n$ heuristically. In principle, both parameters need not be limited beyond the length of the document and size of the corpus respectively; however, this would increase computation time significantly, so we have opted to set them to the specified values.
+For this work, we set $k$ heuristically. In principle, this parameter need not be limited beyond the length of the document; however, this would increase computation time significantly, so we have opted to set it to the specified value.
 
 \section{Results}\label{section.results}
 
 \begin{table}[htbp]
 \centering
-\begin{tabular}{|c|l|c|c|} \hline
-& {\bf Run} & {\bf $\lambda$} & {\bf MAP} \\ \hline
-\rule{0pt}{2.5ex} \multirow{3}{*}{Robust} & {\it baseline-ql} & -- & 0.2183 \\ \cline{2-4}
-\rule{0pt}{2.5ex} & {\it kb-ql} & 0.9 & 0.2275$^{\uparrow}$ \\ \cline{2-4}
-\rule{0pt}{2.5ex} & {\it stanbol-ql} & 0.1 & 0.1928$^{\downarrow}$ \\ \hline \hline 
-\rule{0pt}{2.5ex} \multirow{3}{*}{AP} & {\it baseline-ql} & -- & 0.2346 \\ \cline{2-4}
-\rule{0pt}{2.5ex} & {\it kb-ql} & 0.9 & 0.2515$^{\uparrow}$ \\ \cline{2-4}
-\rule{0pt}{2.5ex} & {\it stanbol-ql} & 0.1 & 0.1951$^{\downarrow}$ \\ \hline
+\begin{tabular}{|c|l|c|c|c|} \hline
+& {\bf Run} & {\bf $\lambda$} & {\bf $n$} & {\bf MAP} \\ \hline
+\rule{0pt}{2.5ex} \multirow{3}{*}{Robust} & {\it baseline-ql} & -- & -- & 0.2183 \\ \cline{2-5}
+\rule{0pt}{2.5ex} & {\it kb-ql} & 0.2 & 10 & 0.2354$^{\uparrow}$ \\ \cline{2-5}
+\rule{0pt}{2.5ex} & {\it stanbol-ql} & 0.1 & -- & 0.2194 \\ \hline
+\rule{0pt}{2.5ex} \multirow{3}{*}{AP} & {\it baseline-ql} & -- & -- & 0.2346 \\ \cline{2-5}
+\rule{0pt}{2.5ex} & {\it kb-ql} & 0.2 & 20 & 0.2680$^{\uparrow}$ \\ \cline{2-5}
+\rule{0pt}{2.5ex} & {\it stanbol-ql} & 0.1 & -- & 0.2355 \\ \hline
 \end{tabular}
-\caption{The top-scoring runs and baselines by MAP. Values marked with $\uparrow$ are statistically significant improvements over baselines, while values marked with $\downarrow$ are statistically significant declines.}
+\caption{The top-scoring runs and baselines by MAP. Values marked with $\uparrow$ are statistically significant improvements over baselines.}
 \label{table.performance}
 \end{table}
 
+\begin{figure*}
+\centering
+\begin{subfigure}{\columnwidth}
+\centering
+\includegraphics[width=\columnwidth]{figures/sweep-entities-AP.pdf}
+\end{subfigure}%
+\begin{subfigure}{\columnwidth}
+\centering
+\includegraphics[width=\columnwidth]{figures/sweep-entities-robust.pdf}
+\end{subfigure}
+\caption{Sweeps over values of $\lambda$ for AP (a) and robust (b) runs. $\lambda=0.0$ is the baseline run scored only on the document text, while $lambda=1.0$ is based entirely on the entity text.}
+\label{figure.sweeps-ql}
+\end{figure*}
+
 \begin{figure}
 \centering
-\begin{subfigure}{.5\columnwidth}
-\centering
-\includegraphics[width=\textwidth]{figures/sweep-ql.pdf}
-\end{subfigure}%
-\begin{subfigure}{.5\columnwidth}
-\centering
-\includegraphics[width=\textwidth]{figures/sweep-stanbol.pdf}
-\end{subfigure}
-\caption{Sweeps over values of $\lambda$ for robust (red) and AP (blue) for \textit{kb} (a) and \textit{stanbol} (b) runs.}
-\label{figure.sweeps-ql}
+\includegraphics[width=.85\columnwidth]{figures/sweep-stanbol.pdf}
+\caption{Sweeps over values of $\lambda$ for AP and robust \textit{stanbol} runs.}
+\label{figure.sweeps-stanbol}
 \end{figure}
 
-Retrieval performance of the baselines and top-scoring runs are shown in Table \ref{table.performance}. Mean average precision (MAP) scores marked with $\uparrow$ are greater than the baseline run with statistical significance at $p < 0.001$ using a paired t-test; those marked with $\downarrow$ show statistically significant declines at the same $p$-value. Note that baselines correspond to $\lambda = 0.0$. 
+Retrieval performance of the baselines and top-scoring runs are shown in Table \ref{table.performance}. Mean average precision (MAP) scores marked with $\uparrow$ are greater than the baseline run with statistical significance at $p < 0.05$ using a paired t-test. Note that baselines correspond to $\lambda = 0.0$. 
 
-Though Table \ref{table.performance} shows only the top-scoring values of $\lambda$, performance for \textit{kb} runs improved over the baseline for all values of $0.0 < \lambda < 1.0$, as shown in Figure \ref{figure.sweeps-ql}(a). All improvements were statistically significant with at least $p < 0.05$. We may explain the sudden drop in MAP at $\lambda=1.0$ by imagining a scenario in which two documents link to the same set of entities while only one of the documents is a good match for the query. The loss of this direct document-query score may be the cause of the drop at $\lambda=1.0$ since, in this case, documents are scored only using their linked entities. Further investigation is needed on this subject.
+As Figure \ref{figure.sweeps-ql} shows, performance of \textit{kb} runs is not very sensitive to $n$, the number of linked entities. Though performance does vary somewhat based on $n$, a run's improvement or decline over the baseline depended only on the mixing parameter $\lambda$, with AP improving at $0.1 \leq \lambda \leq 0.9$ and robust at $0.1 \leq \lambda \leq 0.7$ for all values of $n$. Optimal performance for both collections occured at relatively small numbers of entities as shown in Table \ref{table.performance}; this is a convenient result since it allows for more efficient document expansion.
 
-Notably, our model did not perform well when Stanbol annotations were used as a source of knowledge base links, as seen in Figure \ref{figure.sweeps-ql}(b); in fact, MAP decreased monotonically as more weight was given to the entity model. We attribute this shortcoming to the overfitting of the Stanbol annotations to specific entity mentions in the text, rather than to concepts relevant to the document.
+Notably, our model did not perform well when Stanbol annotations were used as a source of knowledge base links, as seen in Figure \ref{figure.sweeps-stanbol}. Both collections show very slight improvement at $\lambda = 0.1$, but this is not statistically significant and performance declines relative to the baseline at all other values of $\lambda$. We attribute this shortcoming to the overfitting of the Stanbol annotations to specific entity mentions in the text, rather than to concepts relevant to the document. Figure \ref{figure.sweeps-stanbol} does not present sweeps over $n$ for \textit{stanbol} runs because variations in performance at different values of $n$ are negligible using Stanbol entity links. This is due to the low number of linked entities produced by Stanbol: an average of 5.96 and 4.70 per document for AP and robust respectively.
 
 \section{Conclusions}\label{section.conclusions}
 
