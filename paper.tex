@@ -33,7 +33,7 @@
 %}
 \conferenceinfo{CIKM}{2016 Indianapolis, Indiana, USA}
 
-\title{Document knowledge base linking for information retrieval}
+\title{Document Knowledge Base Linking for Information Retrieval}
 
 \maketitle
 \begin{abstract}
@@ -41,7 +41,7 @@ Entity linking and wikification are the tasks of matching mentions of an entity,
 \end{abstract}
 
 % A category with the (minimum) three required fields
-\category{H.3.3}{Information Search and Retrieval}{}
+%\category{H.3.3}{Information Search and Retrieval}{}
 
 %\terms{}
 %\keywords{Entity linking}
@@ -50,11 +50,11 @@ Entity linking and wikification are the tasks of matching mentions of an entity,
 
 Entity linking and wikification have been the subject of much research, spurred recently by the Text Analysis Conference (TAC) Knowledge Base Population (KBP) entity linking track. Systems are designed to link mentions of entities or concepts found in the text to their representations in a knowledge base such as Wikipedia\footnote{http://wikipedia.org} or Freebase\footnote{http://freebase.org}.
 
-These links enrich documents by connecting knowledge base information such as hyperlink graphs, entity membership in categories, and additional text to the annotated documents. It seems reasonable that information retrieval (IR) systems might take advantage of this added source of information to improve the quality of search results. Unfortunately, producing high quality entity annotations is often a computationally expensive process. In addition, these systems generally require training data, which increases the barrier to use. Much entity linking and wikification research has also assumed more amenable circumstances that complicate their application to real-world text. For example, until 2014, the KBP entity linking track supplied explicit mention boundaries to participants.
+These links enrich documents by connecting knowledge base information such as hyperlink graphs, entity membership in categories, and additional text to the annotated documents. Information retrieval (IR) systems may reasonably expect to be able to use this valuable data to improve the quality of search results. Unfortunately, producing high quality entity annotations is often a computationally expensive process. In addition, these systems generally require training data, which increases the barrier to use. Much entity linking and wikification research has also assumed more amenable circumstances that complicate their application to real-world text. For example, until 2014, the KBP entity linking track supplied explicit mention boundaries to participants.
 
-For the purposes of ad hoc document retrieval, however, the granularity of linking entities to specific mention spans in the text is not necessarily required. Since retrieval is concerned with scoring documents in their entirety, we may simplify the task from mapping \textit{mentions} to entities, as is more common, to mapping \textit{documents} to entities. We argue that such a ``bag of links'' provides many of the same benefits as more fine-grained entity linking or wikification processes for the purposes of ad hoc document retrieval while improving computational efficiency and robustness against overfitting. This is because explicitly mentioned entities are often not directly related to the subject matter of documents: for example, a news article may explicitly mention the publisher of a book, which is less useful for document expansion purposes than unmentioned entities relating to the book's subject matter.
+For the purposes of ad hoc document retrieval, however, the granularity of linking entities to specific mention spans in the text is not necessarily required. Since retrieval is concerned with scoring documents in their entirety, we may simplify the task from mapping \textit{mentions} to entities, as is more common, to mapping \textit{documents} to entities. This is because explicitly mentioned entities are often not directly related to the subject matter of documents: for example, a news article may explicitly mention the publisher of a book, which is less useful for document expansion purposes than unmentioned entities relating to the book's subject matter. We argue that such a ``bag of links'' provides many of the same benefits as more fine-grained entity linking or wikification processes for the purposes of ad hoc document retrieval while improving computational efficiency and robustness against overfitting. 
 
-In this paper, we present a document expansion retrieval model to incorporate a ``bag of links'' into the document retrieval task. This model is in contrast to prior work applying entity links to IR, which has focused on \textit{query} expansion. Our document expansion model yields improvement over IR baselines.
+With this idea in mind, we present a document expansion retrieval model to incorporate a ``bag of links'' into the document retrieval task. This model is in contrast to prior work applying entity links to IR, which has focused on \textit{query} expansion. Our document expansion model yields improvement over IR baselines.
 
 \section{Related Work}\label{section.related}
 
@@ -66,7 +66,7 @@ The related area of entity retrieval is also relevant to our work, e.g. \cite{Ad
 
 \subsection{Document Expansion in IR}\label{section.related.ir}
 
-Prior applications of knowledge base links in information retrieval use entity links in a feedback process for query expansion. Xiong and Croft, for example, employ FACC1\footnote{http://lemurproject.org/clueweb09/FACC1/} annotations on the document collection with supervised learning to expand queries \cite{Xiong2015}. Other researchers use entity links identified in query texts, rather than documents, to aid in expansion \cite{Xu2009, Brandao2014}. Still others use entity links in \textit{both} the query and documents \cite{Dalton2014, Li2015} to expand queries. Apart from entity linking, knowledge bases have also been used for query expansion in several related tasks, such as document filtering \cite{Xie2015} and blog search \cite{Elsas2008, Weerkamp2009}.
+Prior applications of knowledge base links in information retrieval use entity links in a feedback process for query expansion. Xiong and Croft, for example, employ FACC1\footnote{http://lemurproject.org/clueweb09/FACC1/} annotations on the document collection with supervised learning to expand queries \cite{Xiong2015}. Other researchers use entity links identified in query text, rather than documents, to aid in expansion \cite{Xu2009, Brandao2014}. Still others use entity links in \textit{both} the query and documents \cite{Dalton2014, Li2015} to expand queries. Apart from entity linking, knowledge bases have also been used for query expansion in several related tasks, such as document filtering \cite{Xie2015} and blog search \cite{Elsas2008, Weerkamp2009}.
 
 %Dalton and Dietz \cite{Dalton2014}, for example, use a number of sources, including entity-annotated queries and pseudo-relevance feedback (PRF) on entity-annotated document collections. Their process is underpinned by entity links produced by their own KB Bridge system \cite{Dalton2013}. Similarly, Xiong and Callan expand queries using pseudo-relevance feedback with the descriptions and categories of Freebase objects linked to a retrieved document in the FACC1\footnote{http://lemurproject.org/clueweb09/FACC1/} annotation data. They employ a supervised machine learning model to select expansion terms, trained on the basis of the terms' influence on the ranking scores of relevant documents \cite{Xiong2015}. Others, including \Li et al. expand queries using the Markov random field model for information retrieval using entity annotations in both the queries and the documents \cite{Li2015}. Other research has investigated query expansion with entities for closely related tasks, like filtering \cite{Xie2015}, entity annotations in the \textit{query}, rather than document \cite{Xu2009, Brandao2014}
 
@@ -101,7 +101,7 @@ in a given collection have a Dirichlet prior distribution:
 %					&\rankeq \sum_{w \in V} P(w|\theta_{D_Q}) \log P(w|\theta_E)
 %&\end{flalign*}
 %
-To find candidate entities to ``link" to a given document $D$, we begin by treating the text of $D$ as a pseudo-query which we pose against a collection of entities $C_E$.  To transform a document into a pseudo-query we apply two transformations.  First we remove all terms from $D$ that appear in the standard Indri stoplist\footnote{http://www.lemurpro ject.org/stopwords/stoplist.dft}.  Next, we prune our pseudo-query by retaining only the $0 < k \leq |D|$ most frequent words in the stopped text of $D$.  The integer variable $k$ is a parameter that we choose empirically.  Let $Q_D$ be the pseudo-query for $D$, consisting of the text of $D$ after our two transformations.
+To find candidate entities to ``link" to a given document $D$, we begin by treating the text of $D$ as a pseudo-query which we pose against a collection of entities $C_E$.  To transform a document into a pseudo-query we apply two transformations.  First we remove all terms from $D$ that appear in the standard Indri stoplist\footnote{http://www.lemurpro ject.org/stopwords/stoplist.dft}.  Next, we prune our pseudo-query by retaining only the $0 < k \leq |D|$ most frequent words in the stopped text of $D$.  The integer variable $k$ is a parameter that we choose empirically.  Let $Q_D$ be the pseudo-query for $D$, consisting of the text of $D$ after our two transformations are applied.
 
 We obtain a list of candidate entities by running $Q_D$ over an index of our knowledge base, $C_E$, where each entry in this index is the text of an entity $E$'s knowledge base node. More formally, we rank the entities in $C_E$ against $D$ using Eq. \ref{equation.ql}, substituting $Q_D$ for the query and $E_i$---the text of the $i^{th}$ entity---for the document. Let $\pi_i$ be the log-probability for entity $E_i$ with respect to $D$ given by Eq. \ref{equation.ql}.  
 
@@ -126,6 +126,25 @@ We assume that a query is generated by a mixture of the document language model 
 \end{flalign}
 
 \noindent Like $P(q_i|D)$, we estimate $P(q_i|E)$ as a Dirichlet-smoothed query likelihood, but using the description text for entry $E$ to estimate of the underlying model. By virtue of our entity-document scoring and normalization, we also have $P(E|D)$.
+
+\begin{figure*}[!htb]
+\centering
+\begin{subfigure}{\columnwidth}
+\centering
+\includegraphics[width=.9\columnwidth]{figures/sweep-entities-AP.pdf}
+\end{subfigure}%
+\begin{subfigure}{\columnwidth}
+\centering
+\includegraphics[width=.9\columnwidth]{figures/sweep-entities-robust.pdf}
+\end{subfigure}
+%\begin{subfigure}{.5\columnwidth}
+%\centering
+%\includegraphics[width=\columnwidth]{figures/sweep-stanbol.pdf}
+%\caption{Stanbol}
+%\end{subfigure}
+\caption{Sweeps over values of $\lambda$ for AP (a) and robust (b) \textit{kb} runs. $\lambda=0.0$ is the baseline run scored only on the document text, while $\lambda=1.0$ is based entirely on the entity text.}
+\label{figure.sweeps-ql}
+\end{figure*}
 
 \section{Evaluation}\label{section.evaluation}
 
@@ -193,25 +212,6 @@ For this work, we set $k$ heuristically. In principle, this parameter need not b
 \label{table.performance}
 \end{table}
 
-\begin{figure*}[!htb]
-\centering
-\begin{subfigure}{\columnwidth}
-\centering
-\includegraphics[width=.9\columnwidth]{figures/sweep-entities-AP.pdf}
-\end{subfigure}%
-\begin{subfigure}{\columnwidth}
-\centering
-\includegraphics[width=.9\columnwidth]{figures/sweep-entities-robust.pdf}
-\end{subfigure}
-%\begin{subfigure}{.5\columnwidth}
-%\centering
-%\includegraphics[width=\columnwidth]{figures/sweep-stanbol.pdf}
-%\caption{Stanbol}
-%\end{subfigure}
-\caption{Sweeps over values of $\lambda$ for AP (a) and robust (b) \textit{kb} runs. $\lambda=0.0$ is the baseline run scored only on the document text, while $\lambda=1.0$ is based entirely on the entity text.}
-\label{figure.sweeps-ql}
-\end{figure*}
-
 \begin{figure}[!htb]
 \centering
 \includegraphics[width=.85\columnwidth]{figures/sweep-stanbol.pdf}
@@ -221,15 +221,15 @@ For this work, we set $k$ heuristically. In principle, this parameter need not b
 
 Retrieval performance of the baselines and top-scoring runs are shown in Table \ref{table.performance}. Mean average precision (MAP) scores marked with $\uparrow$ are greater than the baseline run with statistical significance at $p < 0.05$ using a paired t-test. Note that baselines correspond to $\lambda = 0.0$. 
 
-As Figure \ref{figure.sweeps-ql} shows, performance of \textit{kb} runs is not very sensitive to $n$, the number of linked entities: AP shows improvement over baseline at $0.1 \leq \lambda \leq 0.9$ and robust at $0.1 \leq \lambda \leq 0.7$ for all values of $n$. Optimal performance for both collections occurs at relatively small numbers of entities as shown in Table \ref{table.performance}; this is a convenient result since it allows for more efficient document expansion.
+As Figure \ref{figure.sweeps-ql} shows, performance of \textit{kb} runs is not very sensitive to $n$, the number of linked entities: AP shows improvement over the baseline at $0.1 \leq \lambda \leq 0.9$ and robust at $0.1 \leq \lambda \leq 0.7$ for all values of $n$. Optimal performance for both collections occurs at relatively small numbers of entities as shown in Table \ref{table.performance}; this is a convenient result since it allows for more efficient document expansion.
 
 Figure \ref{figure.sweeps-stanbol} does not present sweeps over $n$ because variations in performance at different values are negligible for \textit{stanbol} runs. This is due to the low number of entities linked by Stanbol: an average of only 5.96 and 4.70 per document for AP and robust respectively. Notably, our model does not perform well with Stanbol annotations, as seen in Figure \ref{figure.sweeps-stanbol}. Both collections show very slight improvement at $\lambda = 0.1$, but this is not statistically significant and performance declines relative to the baseline at all other values of $\lambda$. We attribute this shortcoming to the overfitting of the Stanbol annotations to specific entity mentions in the text, rather than to concepts relevant to the document. 
 
 \section{Conclusions}\label{section.conclusions}
 
-The results indicate that our approach for constructing knowledge base links between documents and Wikipedia produces useful data for document retrieval purposes. Our simple document expansion model that incorporates these links performs well compared to a query likelihood baseline. These outcomes support our argument that a ``bag of links'' to a knowledge base can provide helpful information for a document retrieval task. Further, the poor performance of our model using more traditional mention-to-entity links indicates that not only are document-to-entity links more efficient to produce, they also connect more useful knowledge base entries for the purposes of document retrieval.
+The results indicate that our approach for constructing knowledge base links between documents and Wikipedia produces useful data for document retrieval purposes. Our simple document expansion model that incorporates these links performs well compared to a query likelihood baseline. These outcomes support our argument that a ``bag of links'' to a knowledge base can provide helpful information for a document retrieval task. Further, the poor performance of our model using more traditional mention-to-entity links indicates that document-to-entity links are both more efficient to produce and connect more useful knowledge base entries.
 
-In this paper, we have limited ourselves to using only knowledge base description text. However, knowledge base links provide a great deal more information. Future work may benefit from harnessing this knowledge base data, including hyperlink graphs and entity categories. Since our retrieval model performs \textit{document} expansion, we also plan to investigate its utility when paired with \textit{query} expansion techniques that employ knowledge base links.
+In this paper, we have limited ourselves to using only knowledge base description text. However, future work may benefit from harnessing further knowledge base data, like hyperlink graphs and entity categories. Since our retrieval model performs \textit{document} expansion, we also plan to investigate its utility when paired with \textit{query} expansion techniques that employ knowledge base links.
 
 \section{Acknowledgments}\label{section.acknowledgments}
 This work was supported in part by the US National Science Foundation under Grant No. [blind]. Any opinions, findings, conclusions, or recommendations expressed are those of the authors and do not necessarily reflect the views of the National Science Foundation.
